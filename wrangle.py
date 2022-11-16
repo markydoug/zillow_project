@@ -78,6 +78,9 @@ def clean_zillow(df):
     #drop houses that have 10,000 or more square feet
     df = df[df['square_feet'] <= 10000 ]
 
+    #drop houses that have a home value of 1,600,000 or more 
+    df = df[df['home_value'] <= 1600000 ]
+
     #drop nulls
     df = df.dropna()
 
@@ -142,23 +145,21 @@ def prep_for_model(train, validate, test, target):
     then splits  for X (all variables but target variable) 
     and y (only target variable) for each data frame
     '''
-    #create list of non-numeric variables to create dummies
-    dummy_cols = list(train.select_dtypes(include=np.number).columns)
     #create list of numeric variables to drop for the model
     drop_columns = list(train.select_dtypes(exclude=np.number).columns) + [target]
 
     # Get dummies for fips
-    dummy_df_train = pd.get_dummies(train[dummy_cols], dummy_na=False, drop_first=[True, True])
+    dummy_df_train = pd.get_dummies(train[drop_columns], dummy_na=False, drop_first=[True, True])
     X_train = pd.concat([train, dummy_df_train], axis=1)
     X_train = X_train.drop(columns=drop_columns)
     y_train = train[target]
 
-    dummy_df_validate = pd.get_dummies(validate[dummy_cols], dummy_na=False, drop_first=[True, True])
+    dummy_df_validate = pd.get_dummies(validate[drop_columns], dummy_na=False, drop_first=[True, True])
     X_validate = pd.concat([validate, dummy_df_validate], axis=1)
     X_validate = X_validate.drop(columns=drop_columns)
     y_validate = validate[target]
 
-    dummy_df_test = pd.get_dummies(test[dummy_cols], dummy_na=False, drop_first=[True, True])
+    dummy_df_test = pd.get_dummies(test[drop_columns], dummy_na=False, drop_first=[True, True])
     X_test = pd.concat([test, dummy_df_test], axis=1)
     X_test = X_test.drop(columns=drop_columns)
     y_test = test[target]
