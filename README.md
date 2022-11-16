@@ -15,12 +15,25 @@ My initial hypothesis is that .
 ## The Plan
 * Aqcuire the data from Codeup mySQL database
 
-* Prepare data
-    * 
-    * 
-    * 
+### Prepare data
+#### Dropped rows:
+* Duplicates   
+* Rows having 0 bedrooms AND 0 bathrooms 
+* Rows having more than 10,000 square feet (because these are large and can scew the data)
+* Rows containing null values in any column
 
-* Explore data in search of drivers of churn
+#### Created features
+* ```county``` (names based on the fips code):  
+    - 6037: LA
+    - 6059: Orange 
+    - 6111: Ventura 
+* ```bath_bed_ratio``` 
+    - Column displaying bathrooms/bedrooms
+
+#### Other prep
+* Split data into train, validate, and test (65/20/15)
+
+### Explore data in search of drivers of churn
     * Answer the following initial question
         * 
         * 
