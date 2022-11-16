@@ -97,8 +97,8 @@ def clean_zillow(df):
     df = df.drop(columns='fips')
 
     #Creating new column for home age using year_built, casting as integer
-    #df["2017_age"] = 2017 - df.year_built
-    #df["2017_age"] = df["2017_age"].astype(int)
+    df["2017_age"] = 2017 - df.year_built
+    df["2017_age"] = df["2017_age"].astype(int)
 
     return df
 
@@ -139,30 +139,32 @@ def split_data(df, test_size=0.15):
     return train, validate, test
 
 
-def prep_for_model(train, validate, test, target):
+def prep_for_model(train, validate, test, target, drivers):
     '''
     Takes in train, validate, and test data frames
     then splits  for X (all variables but target variable) 
     and y (only target variable) for each data frame
     '''
-    #create list of numeric variables to drop for the model
-    drop_columns = list(train.select_dtypes(exclude=np.number).columns) + [target]
+    #scale data
+    train_scaled, validate_scaled, test_scaled = scale_zillow(train, validate, test)
+    
+    #make list of cat variables to make dummies for
+    cat_vars = list(train.select_dtypes(exclude=np.number).columns)
+    
+    X_train = train_scaled[drivers]
+    dummy_df_train = pd.get_dummies(X_train[cat_vars], dummy_na=False, drop_first=[True, True])
+    X_train = pd.concat([X_train, dummy_df_train], axis=1).drop(columns=cat_vars)
+    y_train = train_scaled[target]
 
-    # Get dummies for fips
-    dummy_df_train = pd.get_dummies(train[drop_columns], dummy_na=False, drop_first=[True, True])
-    X_train = pd.concat([train, dummy_df_train], axis=1)
-    X_train = X_train.drop(columns=drop_columns)
-    y_train = train[target]
+    X_validate = train_scaled[drivers]
+    dummy_df_validate = pd.get_dummies(X_validate[cat_vars], dummy_na=False, drop_first=[True, True])
+    X_validate = pd.concat([X_validate, dummy_df_validate], axis=1).drop(columns=cat_vars)
+    y_validate = validate_scaled[target]
 
-    dummy_df_validate = pd.get_dummies(validate[drop_columns], dummy_na=False, drop_first=[True, True])
-    X_validate = pd.concat([validate, dummy_df_validate], axis=1)
-    X_validate = X_validate.drop(columns=drop_columns)
-    y_validate = validate[target]
-
-    dummy_df_test = pd.get_dummies(test[drop_columns], dummy_na=False, drop_first=[True, True])
-    X_test = pd.concat([test, dummy_df_test], axis=1)
-    X_test = X_test.drop(columns=drop_columns)
-    y_test = test[target]
+    X_test = test_scaled[drivers]
+    dummy_df_test = pd.get_dummies(X_test[cat_vars], dummy_na=False, drop_first=[True, True])
+    X_test = pd.concat([X_test, dummy_df_test], axis=1).drop(columns=cat_vars)
+    y_test = test_scaled[target]
 
     return X_train, y_train, X_validate, y_validate, X_test, y_test
 
@@ -182,7 +184,5 @@ def big_zillow_wrangle(df, target):
     train_scaled, validate_scaled, test_scaled = scale_zillow(train, validate, test)
     #prep for model
     X_train, y_train, X_validate, y_validate, X_test, y_test = prep_for_model(train_scaled, validate_scaled, test_scaled, target)
-    #explore data
-    train_exp = train.copy()
     
-    return train_exp, X_train, y_train, X_validate, y_validate, X_test, y_test
+    return train, X_train, y_train, X_validate, y_validate, X_test, y_test
