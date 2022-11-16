@@ -26,7 +26,8 @@ def new_zillow_data():
     '''
     # Create SQL query.
     sql_query='''
-        SELECT bathroomcnt AS bathrooms,
+        SELECT properties_2017.parcelid,
+            bathroomcnt AS bathrooms,
             bedroomcnt AS bedrooms,
             taxvaluedollarcnt AS home_value,
             calculatedfinishedsquarefeet AS square_feet,
@@ -44,7 +45,7 @@ def new_zillow_data():
 
     return df
 
-def aquire_zillow_data(new = False):
+def acquire_zillow_data(new = False):
     ''' 
     Checks to see if there is a local copy of the data, 
     if not or if new = True then go get data from Codeup database
@@ -64,52 +65,123 @@ def aquire_zillow_data(new = False):
           
     return df
 
-def house_size(df, col_list):
-    '''
-    Creates size columns and assigns True or False based on if
-    the features in col_list are above or below the interquartile range
-    '''
-    df['large_home'] = False
-    df['small_home'] = False
-    for col in col_list:
-
-        q1, q3 = df[col].quantile([0.25, 0.75]) # get quartiles
-
-        iqr = q3 - q1   # calculate interquartile range
-
-        upper_bound = q3 + 1.5 * iqr   # get upper bound
-        lower_bound = q1 - 1.5 * iqr   # get lower bound
-
-        df.loc[df[col] > upper_bound, 'large_home'] = True
-        df.loc[df[col] < lower_bound, 'small_home'] = True
-    return df
 
 def clean_zillow(df):
     '''Takes in zillow data and returns a clean df'''
     
+    #drop duplicates
+    df = df.drop_duplicates()
+
+    #remove houses that have 0 bathrooms AND 0 bedrooms
+    df = df[(df['bathrooms'] > 0 ) & (df['bedrooms'] > 0)]
+
+    #drop houses that have 10,000 or more square feet
+    df = df[df['square_feet'] <= 10000 ]
+
     #drop nulls
     df = df.dropna()
-
-    #add a column to describe the size of the house
-    #df = house_size(df, ['bedrooms','bathrooms','square_feet'])
 
     #add column that displays ratio of bedrooms to bathrooms:
     df['bath_bed_ratio'] = df.bathrooms / df.bedrooms
 
     #convert data types
     df["year_built"] = df["year_built"].astype(int)
-    df["bedrooms"] = df["bedrooms"].astype(int)  
-    df["bathrooms"] = df["bathrooms"].astype(int) 
+    df["bedrooms"] = df["bedrooms"].astype(int)   
     df["square_feet"] = df["square_feet"].astype(int)
 
     # Relabeling fips data
     df['county'] = df.fips.replace({6037:'LA', 6059:'Orange', 6111:'Ventura'})
-    # Get dummies for fips
-    dummy_df = pd.get_dummies(df[['county']], dummy_na=False, drop_first=[True, True])
-    df = pd.concat([df, dummy_df], axis=1)
+    df = df.drop(columns='fips')
 
     #Creating new column for home age using year_built, casting as integer
-    df["2017_age"] = 2017 - df.year_built
-    df["2017_age"] = df["2017_age"].astype(int)
+    #df["2017_age"] = 2017 - df.year_built
+    #df["2017_age"] = df["2017_age"].astype(int)
 
     return df
+
+def scale_zillow(train, validate, test, scale_features=['bedrooms', 'bathrooms', 'square_feet', 'year_built']):
+    '''
+    Takes in train, validate, test and a list of features to scale
+    and scales those features.
+    Returns df with new columns with scaled data
+    '''
+    train_scaled = train.copy()
+    validate_scaled = validate.copy()
+    test_scaled = test.copy()
+    
+    minmax = pre.MinMaxScaler()
+    minmax.fit(train[scale_features])
+    
+    train_scaled[scale_features] = pd.DataFrame(minmax.transform(train[scale_features]),
+                                                  columns=train[scale_features].columns.values).set_index([train.index.values])
+                                                  
+    validate_scaled[scale_features] = pd.DataFrame(minmax.transform(validate[scale_features]),
+                                               columns=validate[scale_features].columns.values).set_index([validate.index.values])
+    
+    test_scaled[scale_features] = pd.DataFrame(minmax.transform(test[scale_features]),
+                                                 columns=test[scale_features].columns.values).set_index([test.index.values])
+    
+    return train_scaled, validate_scaled, test_scaled
+
+
+def split_data(df, test_size=0.15):
+    '''
+    Takes in a data frame and the train size
+    It returns train, validate , and test data frames
+    with validate being 0.05 bigger than test and train has the rest of the data.
+    '''
+    train, test = train_test_split(df, test_size = test_size , random_state=27)
+    train, validate = train_test_split(train, test_size = (test_size + 0.05)/(1-test_size), random_state=27)
+    
+    return train, validate, test
+
+
+def prep_for_model(train, validate, test, target):
+    '''
+    Takes in train, validate, and test data frames
+    then splits  for X (all variables but target variable) 
+    and y (only target variable) for each data frame
+    '''
+    #create list of non-numeric variables to create dummies
+    dummy_cols = list(train.select_dtypes(include=np.number).columns)
+    #create list of numeric variables to drop for the model
+    drop_columns = list(train.select_dtypes(exclude=np.number).columns) + [target]
+
+    # Get dummies for fips
+    dummy_df_train = pd.get_dummies(train[dummy_cols], dummy_na=False, drop_first=[True, True])
+    X_train = pd.concat([train, dummy_df_train], axis=1)
+    X_train = X_train.drop(columns=drop_columns)
+    y_train = train[target]
+
+    dummy_df_validate = pd.get_dummies(validate[dummy_cols], dummy_na=False, drop_first=[True, True])
+    X_validate = pd.concat([validate, dummy_df_validate], axis=1)
+    X_validate = X_validate.drop(columns=drop_columns)
+    y_validate = validate[target]
+
+    dummy_df_test = pd.get_dummies(test[dummy_cols], dummy_na=False, drop_first=[True, True])
+    X_test = pd.concat([test, dummy_df_test], axis=1)
+    X_test = X_test.drop(columns=drop_columns)
+    y_test = test[target]
+
+    return X_train, y_train, X_validate, y_validate, X_test, y_test
+
+
+def big_zillow_wrangle(df, target):
+    '''
+    Takes in the target variable, if you want new data, and 
+    if you want to remove outliers. 
+    Returns a cleaned zillow dataframe and split dataframe ready for 
+    exploration and modeling
+    '''
+    #clean data
+    df = clean_zillow(df)
+    #split data
+    train, validate, test = split_data(df)
+    #scale data
+    train_scaled, validate_scaled, test_scaled = scale_zillow(train, validate, test)
+    #prep for model
+    X_train, y_train, X_validate, y_validate, X_test, y_test = prep_for_model(train_scaled, validate_scaled, test_scaled, target)
+    #explore data
+    train_exp = train.copy()
+    
+    return train_exp, X_train, y_train, X_validate, y_validate, X_test, y_test
