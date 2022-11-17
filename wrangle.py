@@ -102,12 +102,14 @@ def clean_zillow(df):
 
     return df
 
-def scale_zillow(train, validate, test, scale_features=['bedrooms', 'bathrooms', 'square_feet', 'year_built']):
+def scale_zillow(train, validate, test):
     '''
     Takes in train, validate, test and a list of features to scale
     and scales those features.
     Returns df with new columns with scaled data
     '''
+    scale_features=list(train.select_dtypes(include=np.number).columns)
+    
     train_scaled = train.copy()
     validate_scaled = validate.copy()
     test_scaled = test.copy()
@@ -154,17 +156,17 @@ def prep_for_model(train, validate, test, target, drivers):
     X_train = train_scaled[drivers]
     dummy_df_train = pd.get_dummies(X_train[cat_vars], dummy_na=False, drop_first=[True, True])
     X_train = pd.concat([X_train, dummy_df_train], axis=1).drop(columns=cat_vars)
-    y_train = train_scaled[target]
+    y_train = train[target]
 
-    X_validate = train_scaled[drivers]
+    X_validate = validate_scaled[drivers]
     dummy_df_validate = pd.get_dummies(X_validate[cat_vars], dummy_na=False, drop_first=[True, True])
     X_validate = pd.concat([X_validate, dummy_df_validate], axis=1).drop(columns=cat_vars)
-    y_validate = validate_scaled[target]
+    y_validate = validate[target]
 
     X_test = test_scaled[drivers]
     dummy_df_test = pd.get_dummies(X_test[cat_vars], dummy_na=False, drop_first=[True, True])
     X_test = pd.concat([X_test, dummy_df_test], axis=1).drop(columns=cat_vars)
-    y_test = test_scaled[target]
+    y_test = test[target]
 
     return X_train, y_train, X_validate, y_validate, X_test, y_test
 
