@@ -10,10 +10,10 @@ The housing market is hard to predict, but through data analysis and machine lea
 * Use findings to make recommendations and establish a foundation for future work to improve model's performance.
 
 ## Initial Thoughts
-My initial hypothesis is that .
+My initial hypothesis is that square feet and location are strong drivers of home value.
 
 ## The Plan
-* Aqcuire the data from Codeup mySQL database
+### Aqcuire the data from Codeup mySQL database
 
 ### Prepare data
 #### Dropped rows:
@@ -34,29 +34,33 @@ My initial hypothesis is that .
 * Split data into train, validate, and test (65/20/15)
 
 ### Explore data in search of drivers of churn
-    * Answer the following initial question
-        * 
-        * 
+* Answer the following initial question
+    1. Is there a significant relationship between square footage and home value?
+    2. Is there a significant relationship between the bath-to-bed ratio and home value? 
+    3. Does location have a relationship with home value?
+    4. Is there a significant relationship between age of the home and home value?
 
-* Develop a model to predict the value of a house
-    * 
-    * 
-    * 
+### Develop a model to predict the value of a house
+* Use drivers identified through exploration to build different predictive models
+* Evaluate models on train and validate data
+* Select best model based on highest $r^2 score$
+* Evaluate the best model on the test data
 
-* Draw conclusions
+### Draw conclusions
 
 ## Data dictionary
 | Feature | Definition | Type |
 |:--------|:-----------|:-------
-|**???**| Definition| *type*|
-|**???**| Definition| *type*|
-|**???**| Definition| *type*|
-|**???**| Definition| *type*|
-|**???**| Definition| *type*|
-|**???**| Definition| *type*|
-|**???**| Definition| *type*|
+|**parcelid**| Definition| *int*|
+| **bathroooms** | The number of bathrooms in the home. |*float*|
+| **bedrooms** | The number of bedrooms in the home.|*int*|
+|**square_feet**| Square footage of the house| *int*|
+|**year_built**| Year the house was built| *int*|
+|**bath_bed_ratio**| The number of bathrooms divided by number of bedrooms| *float*|
+|**county**| Name of the county where the house is located| *string*|
+|**2017_age**| Age of the house in 2017 (when the data was collected| *int*|
 |**Target variable**
-|**home_value**| Appraised home value | *float* |
+|**home_value**| The tax-assessed value of the home. | *float* |
 
 
 ## Steps to Reproduce
@@ -65,17 +69,20 @@ My initial hypothesis is that .
 3. Put the data in the file containing the cloned repo.
 4. Run notebook.
 
-## Takeaways and Conclusions
-* 
-* 
+## Conclusion
 
-## Recommendations
-* :
-    * 
-    * 
-    * 
+### Summary
+* ```square_feet``` seems to be a driver of home value
+* ```bath_bed_ratio``` seems to be a driver of home value
+* ```county``` seems to be a driver of home value
+* ```2017_age``` seems to be a driver of home value
 
-## Next Steps
+
+### Recommendations
+* We should do more research of the areas where these houses are located to have a better understanding of how location is driving home value.
+* Dive into our data and see what information has been corrupted and delete those rows so that we can make sure we are using as accurate data as we can.
+
+### Next Steps
 * In the next iteration:
-    * 
-    * 
+    * Look into neighborhoods, and exact location of the houses to see if that will help the model perform better.
+    * Look into other features of the house (garage, pool, deck, etc.) to see if they are also drivers of home value.
