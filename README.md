@@ -9,8 +9,12 @@ The housing market is hard to predict, but through data analysis and machine lea
 * Use regression models to make house price predictions.
 * Use findings to make recommendations and establish a foundation for future work to improve model's performance.
 
-## Initial Thoughts
+## Initial Thoughts & Questions
 My initial hypothesis is that square feet and location are strong drivers of home value.
+    1. Is there a significant relationship between square footage and home value?
+    2. Is there a significant relationship between the bath-to-bed ratio and home value? 
+    3. Does location have a relationship with home value?
+    4. Is there a significant relationship between age of the home and home value?
 
 ## The Plan
 ### Aqcuire the data from Codeup mySQL database
@@ -65,7 +69,7 @@ My initial hypothesis is that square feet and location are strong drivers of hom
 
 ## Steps to Reproduce
 1. Clone this repo
-2. Acquire the data from Codeup mySQL "telco" database using your personal ```env.py``` file where you store your ```username```, ```password```, and ```host```
+2. Acquire the data from Codeup mySQL "zillow" database using your personal ```env.py``` file where you store your ```username```, ```password```, and ```host```
 3. Put the data in the file containing the cloned repo.
 4. Run notebook.
 
