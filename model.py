@@ -6,6 +6,12 @@ from sklearn.linear_model import LinearRegression, LassoLars, TweedieRegressor
 from sklearn.preprocessing import PolynomialFeatures
 
 def regression_models(X_train, y_train, X_validate, y_validate):
+    '''
+    Takes in X_train, y_train, X_validate, y_validate and runs 
+    different models and produces df with RMSE and r^2 scores
+    for each model on train and validate.
+    '''
+    
     train_predictions = pd.DataFrame(y_train)
     validate_predictions = pd.DataFrame(y_validate)
 
@@ -58,6 +64,10 @@ def regression_models(X_train, y_train, X_validate, y_validate):
     return metric_df
 
 def make_metric_df(y_train, y_train_pred, y_validate, y_validate_pred,  metric_df,model_name ):
+    '''
+    Takes in y_train, y_train_pred, y_validate, y_validate_pred, and a df
+    returns a df of RMSE and r^2 score for the model on train and validate
+    '''
     if metric_df.size ==0:
         metric_df = pd.DataFrame(data=[
             {
@@ -95,6 +105,10 @@ def make_metric_df(y_train, y_train_pred, y_validate, y_validate_pred,  metric_d
             }, ignore_index=True)
 
 def baseline_models(y_train, y_validate):
+    '''
+    Takes in y_train and y_validate and returns a df of 
+    baseline_mean and baseline_median and how they perform
+    '''
     train_predictions = pd.DataFrame(y_train)
     validate_predictions = pd.DataFrame(y_validate)
     
@@ -140,7 +154,10 @@ def baseline_models(y_train, y_validate):
             }, ignore_index=True)
 
 def best_model(X_train, y_train, X_validate, y_validate, X_test, y_test):
-        
+    '''
+    Takes in X_train, y_train, X_validate, y_validate, X_test, y_test
+    and returns a df with the RMSE and r^2 score on train, validate and test
+    '''    
     # make the polynomial features to get a new set of features
     pf = PolynomialFeatures(degree=2)
     # fit and transform X_train_scaled
